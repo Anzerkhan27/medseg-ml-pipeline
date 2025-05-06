@@ -1,0 +1,58 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ignore virtual environments
+.venv/
+env/
+venv/
+
+# Ignore Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Ignore dataset files (they're too large to version control)
+data/
+!data/manifest.csv  # Allow manifest.csv, ignore all else in /data
+
+# Ignore DVC cache (if used later)
+.dvc/
+*.dvc
+
+# VS Code workspace settings (optional)
+.vscode/
+
+# Logs and system files
+*.log
+.DS_Store
+Thumbs.db
+# Ignore Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ignore virtual environments
+.venv/
+env/
+venv/
+
+# Ignore Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Ignore dataset files (they're too large to version control)
+data/
+!data/manifest.csv  # Allow manifest.csv, ignore all else in /data
+
+# Ignore DVC cache (if used later)
+.dvc/
+*.dvc
+
+# VS Code workspace settings (optional)
+.vscode/
+
+# Logs and system files
+*.log
+.DS_Store
+Thumbs.db
