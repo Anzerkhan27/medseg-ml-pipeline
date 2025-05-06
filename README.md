@@ -1,85 +1,104 @@
 # 🧠 MedSeg ML Pipeline
 
-A clean, production-style machine learning pipeline for brain tumor segmentation using MRI scans.  
-Built from the ground up to handle real-world medical imaging workflows — from raw `.tif` images to structured manifests and model-ready data.
+A clean, production-style machine learning pipeline for brain tumor segmentation and classification using MRI scans.  
+Inspired by scientific ML engineering workflows (e.g. Met Office, research labs), this project emphasizes **reproducibility**, **data curation**, and **scalable training**.
 
 ---
 
+## 🎓 Project Background
 
-### 🎓 Original BSc Project
+This pipeline is a production-grade refactor of my **BSc Final Year Project**, which tackled:
 
-This pipeline is a refactored and productionized version of my **BSc Final Year Project**, which focused on:
-
-* **Brain tumor detection** (classification) using CNNs and ResNet
-* **Tumor segmentation** from MRI scans using a fine-tuned **ResUNet**
-* Model training and evaluation on annotated MRI datasets with metrics like **Dice coefficient** and **IoU**
-
-The goal was to detect and segment tumor regions from brain MRI slices — a critical task in assisting clinical diagnosis and treatment planning.
+- **Tumor classification**: Predicting presence of tumor (binary) from MRI slices using CNN
+- **Tumor segmentation**: Pixel-level prediction of tumor regions using a ResUNet (coming soon)
 
 ---
 
+## 📦 Current Features
 
-## 📦 What’s Inside
+### ✅ Standardized Dataset Pipeline
 
-This repository contains everything needed to take raw brain MRI slices and convert them into a machine-learning-ready format:
+- Loads MRI image-mask pairs from the LGG dataset  
+- Preprocesses them (grayscale, resize to 256×256, normalize to [0, 1])  
+- Stores them in `.npz` format for fast, reproducible access  
+- Metadata includes: patient ID, slice number, label (tumor present/absent)
 
-- 🔍 **Manifest Generator**  
-  Automatically maps original MRI images to their tumor segmentation masks  
-  ➤ Extracts metadata like slice number, dimensions, patient ID  
-  ➤ Outputs a clean `manifest.csv` for reproducible training workflows
+### ✅ Manifest Generator
 
-- 🧪 **Future Modules (coming soon)**  
-  - Data standardization (resizing, normalization, npz conversion)  
-  - Training pipeline for classification & segmentation (CNN, ResUNet)  
-  - Validation with Dice, IoU, and prediction overlays  
-  - CLI-friendly modules and reproducible workflow
+- Maps all image-mask pairs
+- Extracts patient/slice metadata
+- Outputs `manifest.csv`
 
----
+### ✅ Image Classification Model (CNN)
 
-## 🧠 Dataset
-
-This project uses the publicly available [LGG Brain MRI Segmentation dataset](https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation) hosted on Kaggle.
-
-MRI slices and segmentation masks are automatically downloaded and paired using `kagglehub`.
+- Model trained using TensorFlow/Keras
+- Uses a modular CNN for binary classification (tumor vs. no tumor)
+- Enhanced with:
+  - Custom `tf.data.Dataset` loader
+  - Strong data augmentations (flip, brightness, contrast, rotation)
+  - Balanced random train/val splitting
+  - Model checkpointing and early stopping
+- Best model weights saved to `outputs/models/classifier_model.h5`
 
 ---
 
 ## 🚀 How to Run
 
 ```bash
-# Download the dataset (only once)
+# Step 1: Download dataset
 python scripts/download_lgg_dataset.py
 
-# Generate the manifest (image ↔ mask mapping)
+# Step 2: Generate manifest
 python scripts/generate_manifest.py --input "path/to/kaggle_3m" --output data/manifest.csv
+
+# Step 3: Standardize images into .npz format
+python scripts/standardize_data.py --manifest data/manifest.csv --output data/processed
+
+# Step 4: Train classifier (CNN)
+python scripts/train_classifier.py
 ````
 
-> Make sure to activate your virtual environment and install dependencies from `requirements.txt`.
+---
+
+## 🧪 Future Work
+
+### 🔜 In Progress
+
+* [ ] Visualize training curves (accuracy/loss)
+* [ ] Evaluate on test set with confusion matrix, AUC
+* [ ] Export predictions from `.h5` model
+* [ ] Add CLI to train/evaluate easily
+
+### 🧠 Coming Soon
+
+* [ ] ResUNet-based segmentation training pipeline
+* [ ] Evaluation metrics: Dice, IoU, FP/FN overlays
+* [ ] Convert outputs to HuggingFace Dataset or NetCDF format
+* [ ] Integration with orchestration (e.g., Prefect or Makefile)
+* [ ] GPU/Colab version for large-scale testing
+* [ ] Scientific logging with `mlflow` or `wandb`
 
 ---
 
-## 🛠 Tech Stack
-
-* Python 3.11
-* pandas, Pillow
-* kagglehub
-* pathlib, argparse
-* Virtualenv for environment management
-
----
-
-## 📁 Folder Structure
+## 🗂 Folder Structure
 
 ```
 medseg-ml-pipeline/
 ├── data/
-│   └── manifest.csv            ← Output manifest (image ↔ mask metadata)
+│   ├── manifest.csv
+│   ├── processed/                ← standardized .npz files
+├── outputs/
+│   └── models/                   ← saved .h5 weights
 ├── scripts/
 │   ├── download_lgg_dataset.py
-│   └── generate_manifest.py
-├── .gitignore
+│   ├── generate_manifest.py
+│   ├── standardize_data.py
+│   ├── data_loader.py
+│   └── train_classifier.py
+├── notebooks/
+│   └── Cnn_Classifier.ipynb      ← original baseline notebook
 ├── README.md
-└── .venv/
+└── requirements.txt
 ```
 
 ---
@@ -87,12 +106,5 @@ medseg-ml-pipeline/
 ## 👨‍💻 Author
 
 Made with care by [Anzer Khan](https://github.com/Anzerkhan27)
-Feel free to star 🌟, fork 🍴, or contribute 🤝
-
----
-
-```
-
----
-
+Feel free to star ⭐, fork 🍴, or contribute 🤝
 
