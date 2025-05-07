@@ -1,0 +1,9 @@
+tensorflow>=2.10
+numpy
+pandas
+scikit-learn
+Pillow
+matplotlib
+tqdm
+kagglehub
+prefect>=2.0
