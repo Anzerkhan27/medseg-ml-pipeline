@@ -3,10 +3,16 @@ import os
 from pathlib import Path
 from data_loader import build_dataset, tf_wrapper
 
+
+import tensorflow as tf
+for gpu in tf.config.list_physical_devices('GPU'):
+    tf.config.experimental.set_memory_growth(gpu, True)
+
+
 # ----------------------
 # Configuration
 # ----------------------
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 EPOCHS = 30
 INPUT_SHAPE = (256, 256, 1)
 DATA_DIR = "data/processed"
@@ -16,19 +22,23 @@ MODEL_PATH = os.path.join(MODEL_DIR, "classifier_model.h5")
 # ----------------------
 # Model Definition
 # ----------------------
+
 def build_cnn(input_shape):
+    """Return a simple CNN binary‐classifier with the given input shape."""
     model = tf.keras.Sequential([
-        tf.keras.layers.InputLayer(shape=input_shape),
-        tf.keras.layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
+        tf.keras.layers.InputLayer(input_shape=input_shape),  # <- fixed keyword
+        tf.keras.layers.Conv2D(32, (3, 3), activation="relu", padding="same"),
         tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(64, (3, 3), activation="relu", padding="same"),
         tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(128, (3, 3), activation="relu", padding="same"),
         tf.keras.layers.GlobalAveragePooling2D(),
-        tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(1, activation='sigmoid')
+        tf.keras.layers.Dense(64, activation="relu"),
+        tf.keras.layers.Dense(1, activation="sigmoid"),
     ])
     return model
+
+
 
 # ----------------------
 # Data Augmentation

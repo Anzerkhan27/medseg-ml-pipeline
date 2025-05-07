@@ -103,6 +103,37 @@ medseg-ml-pipeline/
 
 ---
 
+
+## 📊 Evaluation Results (Classifier)
+
+The classifier model was evaluated on a hold-out validation set containing **392 MRI slices**.
+
+### 🔹 Metrics Summary
+
+| Metric                  | Value  |
+| ----------------------- | ------ |
+| **Accuracy**            | 82.91% |
+| **Precision (Class 0)** | 90.99% |
+| **Recall (Class 0)**    | 82.17% |
+| **Precision (Class 1)** | 71.07% |
+| **Recall (Class 1)**    | 84.33% |
+| **F1 Score (Class 1)**  | 77.13% |
+| **ROC AUC**             | 83.25% |
+
+### 🔹 Confusion Matrix
+
+```
+             Predicted
+             0     1
+Actual  0   212   46
+        1    21  113
+```
+
+> 💡 *Note: High recall on tumor-positive class (Class 1) is crucial in medical imaging — this model achieves strong recall while maintaining balance.*
+
+---
+
+
 ## 👨‍💻 Author
 
 Made with care by [Anzer Khan](https://github.com/Anzerkhan27)
