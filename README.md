@@ -1,7 +1,6 @@
 # 🧠 MedSeg ML Pipeline
 
-A clean, production-style machine learning pipeline for brain tumor segmentation and classification using MRI scans.  
-Inspired by scientific ML engineering workflows (e.g. Met Office, research labs), this project emphasizes **reproducibility**, **data curation**, and **scalable training**.
+An end-to-end machine learning pipeline for binary brain tumor classification using the LGG MRI segmentation dataset. Built with TensorFlow, Prefect, and modular design principles for production-readiness.
 
 ---
 
@@ -14,128 +13,101 @@ This pipeline is a production-grade refactor of my **BSc Final Year Project**, w
 
 ---
 
-## 📦 Current Features
-
-### ✅ Standardized Dataset Pipeline
-
-- Loads MRI image-mask pairs from the LGG dataset  
-- Preprocesses them (grayscale, resize to 256×256, normalize to [0, 1])  
-- Stores them in `.npz` format for fast, reproducible access  
-- Metadata includes: patient ID, slice number, label (tumor present/absent)
-
-### ✅ Manifest Generator
-
-- Maps all image-mask pairs
-- Extracts patient/slice metadata
-- Outputs `manifest.csv`
-
-### ✅ Image Classification Model (CNN)
-
-- Model trained using TensorFlow/Keras
-- Uses a modular CNN for binary classification (tumor vs. no tumor)
-- Enhanced with:
-  - Custom `tf.data.Dataset` loader
-  - Strong data augmentations (flip, brightness, contrast, rotation)
-  - Balanced random train/val splitting
-  - Model checkpointing and early stopping
-- Best model weights saved to `outputs/models/classifier_model.h5`
-
----
-
-## 🚀 How to Run
-
-```bash
-# Step 1: Download dataset
-python scripts/download_lgg_dataset.py
-
-# Step 2: Generate manifest
-python scripts/generate_manifest.py --input "path/to/kaggle_3m" --output data/manifest.csv
-
-# Step 3: Standardize images into .npz format
-python scripts/standardize_data.py --manifest data/manifest.csv --output data/processed
-
-# Step 4: Train classifier (CNN)
-python scripts/train_classifier.py
-````
-
----
-
-## 🧪 Future Work
-
-### 🔜 In Progress
-
-* [ ] Visualize training curves (accuracy/loss)
-* [ ] Evaluate on test set with confusion matrix, AUC
-* [ ] Export predictions from `.h5` model
-* [ ] Add CLI to train/evaluate easily
-
-### 🧠 Coming Soon
-
-* [ ] ResUNet-based segmentation training pipeline
-* [ ] Evaluation metrics: Dice, IoU, FP/FN overlays
-* [ ] Convert outputs to HuggingFace Dataset or NetCDF format
-* [ ] Integration with orchestration (e.g., Prefect or Makefile)
-* [ ] GPU/Colab version for large-scale testing
-* [ ] Scientific logging with `mlflow` or `wandb`
-
----
-
-## 🗂 Folder Structure
+## 📁 Project Structure
 
 ```
 medseg-ml-pipeline/
-├── data/
-│   ├── manifest.csv
-│   ├── processed/                ← standardized .npz files
-├── outputs/
-│   └── models/                   ← saved .h5 weights
-├── scripts/
-│   ├── download_lgg_dataset.py
+├── data/                      # Input and processed data
+│   ├── manifest.csv           # Auto-generated file linking images to labels
+│   └── processed/             # Standardized `.npz` files
+├── outputs/                  # Model weights, predictions, and logs
+│   ├── models/                # Trained models (.h5 and .keras)
+│   └── predictions/           # Inference CSV outputs
+├── scripts/                  # Modular Python scripts
 │   ├── generate_manifest.py
 │   ├── standardize_data.py
-│   ├── data_loader.py
-│   └── train_classifier.py
-├── notebooks/
-│   └── Cnn_Classifier.ipynb      ← original baseline notebook
+│   ├── train_classifier.py
+│   ├── infer_batch.py
+│   ├── metrics_report.py
+│   └── model_export.py
+├── orchestration/
+│   └── prefect_flow.py       # End-to-end orchestrated workflow
 ├── README.md
-└── requirements.txt
 ```
 
 ---
 
+## 🚀 Features
 
-## 📊 Evaluation Results (Classifier)
-
-The classifier model was evaluated on a hold-out validation set containing **392 MRI slices**.
-
-### 🔹 Metrics Summary
-
-| Metric                  | Value  |
-| ----------------------- | ------ |
-| **Accuracy**            | 82.91% |
-| **Precision (Class 0)** | 90.99% |
-| **Recall (Class 0)**    | 82.17% |
-| **Precision (Class 1)** | 71.07% |
-| **Recall (Class 1)**    | 84.33% |
-| **F1 Score (Class 1)**  | 77.13% |
-| **ROC AUC**             | 83.25% |
-
-### 🔹 Confusion Matrix
-
-```
-             Predicted
-             0     1
-Actual  0   212   46
-        1    21  113
-```
-
-> 💡 *Note: High recall on tumor-positive class (Class 1) is crucial in medical imaging — this model achieves strong recall while maintaining balance.*
+* **Automated Manifest Creation**: Links MRI images with masks and labels.
+* **Standardization**: Normalizes and resizes images into `.npz` format.
+* **Binary Classifier**: Trains a CNN with validation monitoring.
+* **Batch Inference**: Predicts across entire processed datasets.
+* **Evaluation Metrics**: Outputs precision, recall, F1, ROC AUC, and confusion matrix.
+* **Prefect Orchestration**: One-click execution of the full pipeline locally.
+* **Plug-and-Play Design**: Supports future datasets with minimal code change.
 
 ---
 
+## 🔄 Plug-and-Play Pipeline
 
-## 👨‍💻 Author
+Thanks to Prefect, you can:
 
-Made with care by [Anzer Khan](https://github.com/Anzerkhan27)
-Feel free to star ⭐, fork 🍴, or contribute 🤝
+* Run the pipeline with a single command (`python orchestration/prefect_flow.py`)
+* Avoid duplicate downloads (checks if dataset exists)
+* Standardize new data automatically
+* Re-train and evaluate models seamlessly
+* Get serialized predictions and reports
 
+No manual wiring or editing across multiple scripts is needed.
+
+---
+
+## 🧪 Example Run
+
+```bash
+conda activate tf215gpu
+python orchestration/prefect_flow.py
+```
+
+Prefect will:
+
+1. ✅ Download the dataset (if not already present)
+2. 📝 Generate the manifest
+3. 🧼 Standardize the data
+4. 🧠 Train the classifier
+5. 🔮 Perform batch inference
+6. 📊 Evaluate the model
+
+---
+
+## 📊 Sample Evaluation Output
+
+```
+📊 Classification Report:
+              precision    recall  f1-score   support
+           0     0.8472    0.7833    0.8140      2556
+           1     0.6462    0.7371    0.6887      1373
+
+accuracy                         0.7671      3929
+macro avg     0.7467    0.7602    0.7513      3929
+weighted avg  0.7770    0.7671    0.7702      3929
+
+📉 Confusion Matrix:
+[[2002  554]
+ [ 361 1012]]
+🔵 ROC AUC Score: 0.8578
+```
+
+---
+
+## 📦 Requirements
+
+Install requirements in a Conda environment:
+
+```bash
+conda activate tf215gpu
+pip install -r requirements.txt
+```
+
+---

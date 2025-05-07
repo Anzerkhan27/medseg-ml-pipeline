@@ -1,55 +1,72 @@
-import numpy as np
-import tensorflow as tf
-from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+"""
+metrics_report.py
+
+Usage (CLI):
+    python scripts/metrics_report.py --pred outputs/predictions/myset_20250507_1530.csv
+"""
+
 from pathlib import Path
-from data_loader import build_dataset, tf_wrapper
+import argparse
 
-# ---------------------
-# Configuration
-# ---------------------
-MODEL_PATH = "outputs/models/classifier_model.h5"
-DATA_DIR = "data/processed"
-BATCH_SIZE = 64
+import pandas as pd
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    roc_auc_score,
+)
 
-# ---------------------
-# Load Data
-# ---------------------
-print("🔄 Loading validation data...")
-ds, total = build_dataset(DATA_DIR, task="classification", shuffle=False)
-val_count = max(1, int(0.1 * total))
-val_ds = ds.take(val_count).map(tf_wrapper("classification"))
-val_ds = val_ds.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+# ────────────────────────────────────────────────────────────────────
+def generate_metrics_report(
+    predictions_file: str,
+    model_output: str | None = None,
+    digits: int = 4,
+) -> None:
+    """
+    Read a CSV created by `run_batch_inference` and print classification metrics.
 
-# ---------------------
-# Load Model
-# ---------------------
-print("📦 Loading trained model...")
-model = tf.keras.models.load_model(MODEL_PATH)
+    Parameters
+    ----------
+    predictions_file : str
+        Path to the CSV that contains file_name,label_true,label_pred,probability
+    model_output : str | None
+        (Optional) path to a saved model – not used here but convenient
+        if you later want to load the model for extra analyses.
+    digits : int
+        Number of decimals for classification_report.
+    """
+    predictions_file = Path(predictions_file)
+    if not predictions_file.exists():
+        raise FileNotFoundError(predictions_file)
 
-# ---------------------
-# Predict and Collect
-# ---------------------
-print("🔍 Predicting on validation set...")
-y_true, y_pred = [], []
+    df = pd.read_csv(predictions_file)
 
-for images, labels in val_ds:
-    preds = model.predict(images).squeeze()
-    preds_binary = (preds > 0.5).astype(int)
+    if df.empty:
+        print("❌ Predictions CSV is empty. Nothing to evaluate.")
+        return
 
-    y_true.extend(labels.numpy().astype(int))
-    y_pred.extend(preds_binary)
+    y_true = df["label_true"].astype(int).tolist()
+    y_pred = df["label_pred"].astype(int).tolist()
 
-# ---------------------
-# Metrics
-# ---------------------
-print("\n📊 Classification Report:")
-print(classification_report(y_true, y_pred, digits=4))
+    print("\n📊 Classification Report:")
+    print(classification_report(y_true, y_pred, digits=digits))
 
-print("📉 Confusion Matrix:")
-print(confusion_matrix(y_true, y_pred))
+    print("\n📉 Confusion Matrix:")
+    print(confusion_matrix(y_true, y_pred))
 
-try:
-    auc = roc_auc_score(y_true, y_pred)
-    print(f"🔵 ROC AUC Score: {auc:.4f}")
-except Exception as e:
-    print(f"⚠️ Could not compute ROC AUC: {e}")
+    try:
+        auc = roc_auc_score(y_true, df["probability"])
+        print(f"\n🔵 ROC AUC Score: {auc:.4f}")
+    except Exception as e:
+        print(f"\n⚠️  Could not compute ROC AUC: {e}")
+
+# ────────────────────────────────────────────────────────────────────
+# CLI entry‑point
+# ────────────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pred", required=True, help="Path to predictions CSV")
+    parser.add_argument("--model", help="(Optional) path to model")
+    parser.add_argument("--digits", type=int, default=4)
+    args = parser.parse_args()
+
+    generate_metrics_report(args.pred, args.model, args.digits)

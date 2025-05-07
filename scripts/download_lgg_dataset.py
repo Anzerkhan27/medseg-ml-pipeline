@@ -1,3 +1,5 @@
+# scripts/download_lgg_dataset.py
+
 import kagglehub # type: ignore
 from pathlib import Path
 
